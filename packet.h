@@ -13,19 +13,19 @@
 #include <iomanip>
 
 struct ieee80211_radiotap_header {
-	u_int8_t        it_version;     /* set to 0 */
-	u_int8_t        it_pad;
-	u_int16_t       it_len;         /* entire length */
-    u_int32_t       it_present;
+	u_int8_t        it_version = 0;     /* set to 0 */
+	u_int8_t        it_pad = 0;
+	u_int16_t       it_len = 8;         /* entire length */
+    u_int32_t       it_present = 0;
 } __attribute__((__packed__));
 
 struct ieee80211_header {
 	uint16_t frame_control;
-	uint16_t duration_id;
+	uint16_t duration_id = 0;
 	uint8_t readdr1[6];
 	uint8_t sourceaddr4[6];
 	uint8_t bssid[6];
-	uint16_t sequence_control;
+	uint16_t sequence_control = 0;
 };
 
 struct beacon_frame_fixed {

