@@ -3,7 +3,6 @@
 void ApBroadcast(pcap_t* handle, char* apMac){
     //Ap -> BroadCast 0xc000
     uint8_t send[6];
-
     uint8_t des[6];
     std::istringstream apMacStream(apMac);
     int value;
