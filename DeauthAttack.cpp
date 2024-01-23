@@ -2,11 +2,8 @@
 
 void ApBroadcast(pcap_t* handle, char* apMac){
     //Ap -> BroadCast 0xc000
-
-    //Station MAC ADDR
     uint8_t send[6];
 
-    //AP MAC ADDR
     uint8_t des[6];
     std::istringstream apMacStream(apMac);
     int value;
@@ -19,7 +16,6 @@ void ApBroadcast(pcap_t* handle, char* apMac){
 
     struct Deauth packet;
 
-    //deauth
     packet.deauth.frame_control = 0x00c0;
     
     for(int i = 0;i<6;i++){
@@ -45,10 +41,7 @@ void ApBroadcast(pcap_t* handle, char* apMac){
 
 void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
     //Ap -> Station
-    //Station MAC ADDR
     uint8_t send[6];
-
-    //AP MAC ADDR
     uint8_t des[6];
     std::istringstream apMacStream(apMac);
     std::istringstream stationMacStream(stationMac);
@@ -69,8 +62,6 @@ void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
     }
 
     struct Deauth packet;
-
-    //deauth
     packet.deauth.frame_control = 0x00c0;
     
     for(int i = 0;i<6;i++){
@@ -94,11 +85,7 @@ void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
 
 void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
     //Station -> AP
-
-    //Station MAC ADDR
     uint8_t send[6];
-
-    //AP MAC ADDR
     uint8_t des[6];
     std::istringstream apMacStream(apMac);
     std::istringstream stationMacStream(stationMac);
@@ -120,7 +107,6 @@ void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
 
     struct Deauth packet;
 
-    //deauth
     packet.deauth.frame_control = 0x00c0;
     
     for(int i = 0;i<6;i++){
