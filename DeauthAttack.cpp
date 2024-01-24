@@ -9,6 +9,10 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
+    //argv[2] -> ApMac
+    //argv[3] -> StationMac
+    //argv[5] -> SSID
+
     switch (argc) {
         case 3:
             ApBroadcast(handle, argv[2]);
@@ -24,7 +28,7 @@ int main(int argc, char* argv[]){
             usage();
             break;
     }
-
+    
     pcap_close(handle);
     return 0;
 }

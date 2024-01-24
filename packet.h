@@ -74,12 +74,18 @@ void ApBroadcast(pcap_t* handle, char* apMac){
     //Ap -> BroadCast 0xc000
     uint8_t send[6];
     uint8_t des[6];
+
+    //char* apMac에 저장되어 있는 Mac주소를 스트림으로 변환
     std::istringstream apMacStream(apMac);
+    //각각의 16진수 값을 임시로 담는다.
     int value;
+    // :
     char colon;
 
     for (int i = 0; i < 6; ++i) {
+        //스트림을 16진수로 하여 값을 임시로 value에 넣고 그 뒤 :은 colon에 넣는다.
         apMacStream >> std::hex >> value >> colon;
+        //send 배열에 value값을 uint8_t로 형변환 하여 넣는다.
         send[i] = static_cast<uint8_t>(value);
     }
 
@@ -235,11 +241,13 @@ void authentication(pcap_t* handle, char* apMac, char* stationMac,char* ssid){
         assopacket.deauth.sourceaddr4[i] = send[i]; 
         assopacket.deauth.bssid[i] = des[i];
     }
-
+    //ssid의 길이를 저장한다.
     size_t ssidLength = strlen(ssid);
+    //저장한 길이를 구조체에 저장한다.
     assopacket.data.length = ssidLength;
+    //uint_8로 선언된 벡터를 구조체와 ssid길이 만큼 할당한다.
     std::vector<uint8_t> assoPacketData(sizeof(assopacket) + ssidLength);
-
+    
     memcpy(assoPacketData.data(), &assopacket, sizeof(assopacket));
     memcpy(assoPacketData.data() + sizeof(assopacket), ssid, ssidLength);
 
