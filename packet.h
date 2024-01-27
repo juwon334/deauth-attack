@@ -228,7 +228,6 @@ void authentication(pcap_t* handle, char* apMac, char* stationMac,char* ssid){
     struct Auth packet;
     struct Asso assopacket;
     
-    
     packet.deauth.frame_control = 0xb0;
     assopacket.deauth.frame_control = 0x00;
     
@@ -241,6 +240,7 @@ void authentication(pcap_t* handle, char* apMac, char* stationMac,char* ssid){
         assopacket.deauth.sourceaddr4[i] = send[i]; 
         assopacket.deauth.bssid[i] = des[i];
     }
+    
     //ssid의 길이를 저장한다.
     size_t ssidLength = strlen(ssid);
     //저장한 길이를 구조체에 저장한다.
